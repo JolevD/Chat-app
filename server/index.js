@@ -1,12 +1,23 @@
-import { WebSocketServer } from "ws"
+import { createServer } from "http"
+import { Server } from "socket.io"
 
-const server = new WebSocketServer({ port: "3000" })
+const httpServer = createServer()
 
-server.on('connection', (socket) => {
-    console.log("connected");
-    socket.on('message', (message) => {
-        const buff = Buffer.from(message)
-        console.log(buff.toString())
-        socket.send(`${message}`)
+const io = new Server(httpServer, {
+    cors: {
+        origin: process.env.NODE_ENV === "production" ? false : ['http://localhost:5500'] // as we are in development phase we dont want other request comming on this node server
+    }
+})
+
+io.on('connection', (socket) => {
+    console.log(`User: ${socket.id} is connected`);
+
+    socket.on('message', (data) => {
+        console.log(data);
+        io.emit('message', `${socket.id.substring(0, 5)}: ${data}`)
     })
+})
+
+httpServer.listen(3500, () => {
+    console.log("Listening on port: 3500")
 })
