@@ -1,20 +1,49 @@
 const socket = io('ws://localhost:3500')
 
+
+const messageInput = document.querySelector('#message')
+const nameInput = document.querySelector('#name')
+const roomInput = document.querySelector('#room')
 const activity = document.querySelector('.activity')
-const input = document.querySelector('input')
+const chatDisplay = document.querySelector('.chat-display')
+const roomList = document.querySelector('.room-list')
+const userList = document.querySelector('.user-list')
 
 function sendMessage(e) {
     e.preventDefault()
 
-    if (input.value) {
-        socket.emit('message', input.value)
+    if (nameInput.value && roomInput.value && messageInput.value) {
+        socket.emit('message', {
+            "text": messageInput.value,
+            "name": nameInput.value
+        }
+        )
         input.value = ''
     }
     input.focus()
 }
 
-document.querySelector('form')
+function enterRoom(e) {
+    e.preventDefault()
+    if (roomInput.value && nameInput.value) {
+        socket.emit("enterRoom", {
+            "name": nameInput.value,
+            "room": roomInput.value
+        })
+    }
+}
+
+
+document.querySelector('.form-msg')
     .addEventListener('submit', sendMessage)
+
+document.querySelector('.form-join')
+    .addEventListener('submit', enterRoom)
+
+messageInput.addEventListener('keypress', () => {
+    socket.emit("activity", nameInput.value)
+})
+
 
 // displaying messages 
 
@@ -25,9 +54,6 @@ socket.on('message', (data) => {
     document.querySelector('ul').appendChild(li)
 })
 
-input.addEventListener('keypress', () => {
-    socket.emit("activity", socket.id.substring(0, 5))
-})
 
 let activityTimer
 socket.on('activity', (name) => {
