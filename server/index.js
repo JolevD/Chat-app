@@ -11,6 +11,7 @@ const __dirname = path.dirname(__filename)
 app.use(express.static(path.join(__dirname, "public")))
 
 const PORT = process.env.PORT || 3500
+const ADMIN = "admin"
 
 const expressServer = app.listen(PORT, () => {
     console.log(`listening on port ${PORT}`)
@@ -21,6 +22,13 @@ const io = new Server(expressServer, {
         origin: process.env.NODE_ENV === "production" ? false : ['http://localhost:5500', 'http://127.0.0.1:5500'] // as we are in development phase we dont want other request comming on this node server
     }
 })
+
+const usersState = {
+    users: [],
+    setUser: function (newUserArray) {
+        this.users = newUserArray
+    }
+}
 
 io.on('connection', (socket) => {
     console.log(`User: ${socket.id} is connected`);
@@ -49,3 +57,16 @@ io.on('connection', (socket) => {
     })
 
 })
+
+
+function buildMsg(name, text) {
+    return {
+        name,
+        text,
+        time: Intl.DateTimeFormat("default", {
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric'
+        }).format(new Date())
+    }
+}
